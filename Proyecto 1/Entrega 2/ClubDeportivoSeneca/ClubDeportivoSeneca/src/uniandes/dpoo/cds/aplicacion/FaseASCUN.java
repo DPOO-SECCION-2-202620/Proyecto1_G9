@@ -1,6 +1,7 @@
 
 package uniandes.dpoo.cds.aplicacion;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,11 +16,15 @@ import java.util.Set;
 import uniandes.dpoo.cds.excepciones.ReglaNegocioException;
 import uniandes.dpoo.cds.modelo.competencias.Competencia;
 
-public class FaseASCUN {
+public class FaseASCUN implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     // RESULTADO DE UN PARTIDO
 
-    public static class Resultado {
+    public static class Resultado implements Serializable {
+
+        private static final long serialVersionUID = 1L;
 
         private final String local;
         private final String visitante;

@@ -1,6 +1,7 @@
 
 package uniandes.dpoo.cds.aplicacion;
 
+import java.io.Serializable;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,13 +21,21 @@ import uniandes.dpoo.cds.modelo.conjunto.EstadisticaVoleibol;
 import uniandes.dpoo.cds.modelo.conjunto.InscripcionEquipo;
 import uniandes.dpoo.cds.modelo.conjunto.PartidoInterno;
 
-public class GestorEstadisticas {
+public class GestorEstadisticas implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    // ESTADISTICAS POR PARTIDO
 
     private final Map<PartidoInterno, List<EstadisticaJugador>>
         estadisticas = new IdentityHashMap<>();
 
+    // SANCIONES PENDIENTES
+
     private final Map<Equipo, Set<String>>
         suspendidosSiguientePartido = new IdentityHashMap<>();
+
+    // SANCIONES QUE SE CUMPLEN EN CADA PARTIDO
 
     private final Map<PartidoInterno, Map<Equipo, Set<String>>>
         suspendidosEnPartido = new IdentityHashMap<>();
@@ -67,15 +76,19 @@ public class GestorEstadisticas {
 
         Set<String> bloqueadosLocal = new HashSet<>(
             suspendidosSiguientePartido.getOrDefault(
-                local, Collections.emptySet()
+                local,
+                Collections.emptySet()
             )
         );
 
         Set<String> bloqueadosVisitante = new HashSet<>(
             suspendidosSiguientePartido.getOrDefault(
-                visitante, Collections.emptySet()
+                visitante,
+                Collections.emptySet()
             )
         );
+
+        // COMPROBAR JUGADORES DISPONIBLES
 
         if (contarHabilitados(local, bloqueadosLocal)
                 < local.getDeporte().getMinimoJugadores() ||
@@ -95,7 +108,8 @@ public class GestorEstadisticas {
 
         suspendidosEnPartido.put(partido, bloqueos);
 
-        // La sancion se cumple en este encuentro.
+        // LA SANCION SE CUMPLE EN ESTE PARTIDO
+
         suspendidosSiguientePartido.remove(local);
         suspendidosSiguientePartido.remove(visitante);
     }
@@ -123,7 +137,8 @@ public class GestorEstadisticas {
 
     // REGISTRAR ESTADISTICAS
 
-    public void registrarEstadistica(EstadisticaJugador dato)
+    public void registrarEstadistica(
+            EstadisticaJugador dato)
             throws ReglaNegocioException {
 
         if (dato == null ||
@@ -168,6 +183,8 @@ public class GestorEstadisticas {
             );
         }
 
+        // COMPROBAR SANCIONES DEL PARTIDO
+
         if (suspendidosEnPartido.get(partido)
                 .get(equipo).contains(login)) {
 
@@ -176,7 +193,7 @@ public class GestorEstadisticas {
             );
         }
 
-        // IDENTIFICAR DEPORTE
+        // IDENTIFICAR DISCIPLINA
 
         String nombre = Normalizer.normalize(
             equipo.getDeporte().getNombre(),
@@ -210,12 +227,15 @@ public class GestorEstadisticas {
             );
         }
 
-        // EVITAR ESTADISTICAS DUPLICADAS
+        // BUSCAR ESTADISTICAS DEL PARTIDO
 
         List<EstadisticaJugador> lista =
             estadisticas.computeIfAbsent(
-                partido, p -> new ArrayList<>()
+                partido,
+                p -> new ArrayList<>()
             );
+
+        // RECHAZAR REGISTROS DUPLICADOS
 
         for (EstadisticaJugador existente : lista) {
 
@@ -229,7 +249,7 @@ public class GestorEstadisticas {
             }
         }
 
-        // GUARDAR ESTADISTICA
+        // GUARDAR REGISTRO
 
         lista.add(dato);
 
@@ -245,7 +265,8 @@ public class GestorEstadisticas {
 
                 suspendidosSiguientePartido
                     .computeIfAbsent(
-                        equipo, k -> new HashSet<>()
+                        equipo,
+                        k -> new HashSet<>()
                     )
                     .add(login);
             }
@@ -259,19 +280,22 @@ public class GestorEstadisticas {
 
         return Collections.unmodifiableList(
             estadisticas.getOrDefault(
-                partido, Collections.emptyList()
+                partido,
+                Collections.emptyList()
             )
         );
     }
 
-    // CONSULTAR SANCIONES
+    // CONSULTAR SUSPENSIONES PENDIENTES
 
     public boolean suspendidoEnProximoPartido(
-            Equipo equipo, String login) {
+            Equipo equipo,
+            String login) {
 
         return suspendidosSiguientePartido
             .getOrDefault(
-                equipo, Collections.emptySet()
+                equipo,
+                Collections.emptySet()
             )
             .contains(login);
     }

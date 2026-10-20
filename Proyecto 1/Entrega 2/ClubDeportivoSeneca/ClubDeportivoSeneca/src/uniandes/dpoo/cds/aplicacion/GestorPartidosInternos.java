@@ -13,21 +13,31 @@ import uniandes.dpoo.cds.modelo.conjunto.PartidoInterno;
 public class GestorPartidosInternos {
 
     private final ClubDeportivoSeneca club;
+
     private final List<PartidoInterno> partidos;
 
+    // CONSTRUCTOR
+
     public GestorPartidosInternos(ClubDeportivoSeneca club) {
+
         if (club == null) {
             throw new IllegalArgumentException(
                 "El club no puede ser nulo"
             );
         }
+
         this.club = club;
         this.partidos = new ArrayList<>();
     }
 
+    // CONSULTAR PARTIDOS
+
     public List<PartidoInterno> getPartidos() {
+
         return Collections.unmodifiableList(partidos);
     }
+
+    // PROGRAMAR PARTIDO
 
     public PartidoInterno programarPartido(
             LocalDate fecha,
@@ -35,7 +45,7 @@ public class GestorPartidosInternos {
             Equipo visitante)
             throws ReglaNegocioException {
 
-        // VALIDAR LA FECHA
+        // VALIDAR FECHA
 
         if (fecha == null) {
             throw new ReglaNegocioException(
@@ -43,7 +53,7 @@ public class GestorPartidosInternos {
             );
         }
 
-        // VALIDAR LOS EQUIPOS
+        // VALIDAR EQUIPOS
 
         if (local == null || visitante == null) {
             throw new ReglaNegocioException(
@@ -57,7 +67,7 @@ public class GestorPartidosInternos {
             );
         }
 
-        // VERIFICAR QUE ESTEN REGISTRADOS EN EL CLUB
+        // EQUIPOS DEBEN ESTAR REGISTRADOS
 
         if (!club.getEquipos().contains(local) ||
             !club.getEquipos().contains(visitante)) {
@@ -108,6 +118,7 @@ public class GestorPartidosInternos {
             visitante.getDeporte().getMinimoJugadores();
 
         if (minimoLocal <= 0 || minimoVisitante <= 0) {
+
             throw new ReglaNegocioException(
                 "El minimo de jugadores debe ser positivo"
             );
@@ -124,10 +135,44 @@ public class GestorPartidosInternos {
         // CREAR Y REGISTRAR EL PARTIDO
 
         PartidoInterno partido =
-            new PartidoInterno(fecha, local, visitante);
+            new PartidoInterno(
+                fecha,
+                local,
+                visitante
+            );
 
         partidos.add(partido);
 
         return partido;
+    }
+
+    // NUEVO: RESTAURAR UN PARTIDO YA EXISTENTE
+
+    public void restaurarPartido(
+            PartidoInterno recuperado)
+            throws ReglaNegocioException {
+
+        if (recuperado == null) {
+
+            throw new ReglaNegocioException(
+                "Partido recuperado nulo"
+            );
+        }
+
+        // VALIDAR LAS REGLAS DE PROGRAMACION
+
+        programarPartido(
+            recuperado.getFecha(),
+            recuperado.getEquipoLocal(),
+            recuperado.getEquipoVisitante()
+        );
+
+        // REEMPLAZAR LA INSTANCIA TEMPORAL
+        // POR LA INSTANCIA QUE VINO DEL ARCHIVO
+
+        partidos.set(
+            partidos.size() - 1,
+            recuperado
+        );
     }
 }
